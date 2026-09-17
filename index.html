@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Cloudflare Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; background-color: #f4f4f9;}
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: inline-block; max-width: 600px; width: 100%;}
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        #url-display { font-size: 1.2em; margin: 15px 0; padding: 10px; background: #eef; border-radius: 5px; word-wrap: break-word;}
+        button { padding: 10px 20px; font-size: 1em; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Server Connection Status</h2>
+
+        <p>Current cloud URL for the backend:</p>
+        <div id="url-display">Checking...</div>
+
+        <p>Cloud connection status:</p>
+        <div id="status-display">Connecting...</div>
+
+        <br>
+        <button onclick="checkConnection()">Refresh Now</button>
+    </div>
+
+    <script>
+        // This is the local backend address we will ask for the cloud URL
+        const localBackendBase = "http://127.0.0.1:8000";
+
+        async function checkConnection() {
+            const urlDisplay = document.getElementById('url-display');
+            const statusDisplay = document.getElementById('status-display');
+
+            urlDisplay.innerHTML = "Fetching URL...";
+            statusDisplay.innerHTML = "Connecting...";
+            statusDisplay.className = "";
+
+            try {
+                // 1. Ask the backend locally for the current cloud URL
+                const localResponse = await fetch(`${localBackendBase}/get-url`);
+                if (!localResponse.ok) throw new Error("Could not reach the local backend");
+
+                const data = await localResponse.json();
+                const cloudUrl = data.url;
+
+                if (!cloudUrl) {
+                    urlDisplay.innerHTML = "No URL available (the watcher has not updated the .env file yet)";
+                    return;
+                }
+
+                urlDisplay.innerHTML = `<a href="${cloudUrl}" target="_blank">${cloudUrl}</a>`;
+
+                // 2. Try connecting to the cloud URL to confirm the server is working
+                const cloudResponse = await fetch(`${cloudUrl}/`);
+                if (cloudResponse.ok) {
+                    const cloudData = await cloudResponse.json();
+                    statusDisplay.innerHTML = `Connected successfully! Server message: "${cloudData.message}"`;
+                    statusDisplay.className = "success";
+                } else {
+                    throw new Error("The cloud URL is not responding");
+                }
+
+            } catch (error) {
+                statusDisplay.innerHTML = `Error: ${error.message}`;
+                statusDisplay.className = "error";
+            }
+        }
+
+        // Run the check when the page loads
+        window.onload = checkConnection;
+    </script>
+</body>
+</html>

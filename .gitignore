@@ -1,0 +1,8 @@
+#ignore .env files 
+*.env
+
+#ignore cloudflare run 
+cloudflared.exe
+
+#ignore running processes
+*.pyc
