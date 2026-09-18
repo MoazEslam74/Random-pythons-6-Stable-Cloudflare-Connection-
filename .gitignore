@@ -9,3 +9,6 @@ cloudflared.exe
 
 #ignore test files
 /test
+
+#ignore secret files
+*.json
