@@ -6,3 +6,6 @@ cloudflared.exe
 
 #ignore running processes
 *.pyc
+
+#ignore test files
+/test
